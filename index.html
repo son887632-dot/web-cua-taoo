@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vàng Trắng — Cổng dịch vụ</title>
+<style>
+  :root{
+    --yellow:#FFD60A;
+    --yellow-deep:#FFC300;
+    --yellow-soft:#FFF8D6;
+    --yellow-line:#F2E2A0;
+    --ink:#20201c;
+    --muted:#7a7a70;
+    --white:#ffffff;
+    --bg:#FFFDF3;
+    --shadow:0 10px 30px rgba(200,165,0,.15);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  [hidden]{display:none !important}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font:inherit;cursor:pointer}
+  input,select{font:inherit}
+  code{background:var(--yellow-soft);padding:2px 6px;border-radius:6px;font-size:.9em}
+
+  /* ================= AUTH ================= */
+  .auth{
+    min-height:100dvh;
+    display:grid;place-items:center;
+    padding:24px;
+    position:relative;overflow:hidden;
+    background:radial-gradient(1200px 600px at 10% 0%, #FFF7CC 0%, transparent 60%), var(--bg);
+  }
+  .blob{position:absolute;border-radius:50%;pointer-events:none}
+  .b1{width:280px;height:280px;background:var(--yellow);top:-90px;left:-80px;opacity:.5}
+  .b2{width:180px;height:180px;background:#FFE98A;bottom:-60px;right:-40px;opacity:.7}
+  .b3{width:90px;height:90px;background:var(--yellow-deep);top:18%;right:12%;opacity:.28}
+
+  .auth-card{
+    position:relative;z-index:2;
+    width:100%;max-width:420px;
+    background:var(--white);
+    border:1px solid var(--yellow-line);
+    border-radius:24px;
+    padding:26px 22px 22px;
+    box-shadow:var(--shadow);
+  }
+  .brand{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+  .brand-logo{
+    width:46px;height:46px;border-radius:14px;flex:none;
+    display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--yellow),var(--yellow-deep));
+    font-weight:800;font-size:22px;color:#3a2f00;
+    box-shadow:0 6px 16px rgba(255,195,0,.45);
+  }
+  .brand-logo.small{width:38px;height:38px;border-radius:12px;font-size:18px}
+  .brand h1{margin:0;font-size:19px;letter-spacing:.2px}
+  .brand p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+
+  .tabs{display:flex;gap:8px;background:var(--yellow-soft);padding:5px;border-radius:14px;margin-bottom:16px}
+  .tab{flex:1;border:0;background:transparent;padding:9px 10px;border-radius:10px;font-weight:700;color:#8a7712;transition:.18s}
+  .tab.active{background:var(--white);color:var(--ink);box-shadow:0 3px 10px rgba(200,165,0,.22)}
+
+  .form{display:grid;gap:12px}
+  .form label{display:grid;gap:6px;font-size:13px;font-weight:700;color:#4a4a40}
+  .form input{
+    width:100%;padding:12px 13px;border-radius:12px;
+    border:1px solid #EDE3C0;background:#FFFEF8;
+    outline:none;transition:.18s;color:var(--ink);
+  }
+  .form input:focus{border-color:var(--yellow-deep);box-shadow:0 0 0 3px rgba(255,214,10,.28);background:#fff}
+
+  .btn{border:0;border-radius:12px;padding:12px 16px;font-weight:800;transition:.18s}
+  .btn-primary{background:linear-gradient(135deg,var(--yellow),var(--yellow-deep));color:#3a2f00;box-shadow:0 8px 20px rgba(255,195,0,.4)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(255,195,0,.5)}
+  .btn-ghost{background:var(--yellow-soft);color:#6b5a00;border:1px solid var(--yellow-line)}
+  .btn-ghost:hover{background:#FFF1B8}
+  .btn.big{padding:15px 18px;font-size:16px;width:100%}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+  .msg{margin:0;font-size:13px;min-height:18px;text-align:center;color:#c0392b;font-weight:700}
+  .msg.ok{color:#1e7d3a}
+
+  /* ================= APP ================= */
+  .topbar{
+    position:sticky;top:0;z-index:30;
+    display:flex;align-items:center;gap:12px;
+    padding:12px 16px;
+    background:rgba(255,253,243,.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--yellow-line);
+  }
+  .icon-btn{
+    width:42px;height:42px;border-radius:12px;border:1px solid var(--yellow-line);
+    background:var(--white);display:grid;place-items:center;gap:4px;padding:11px 10px;
+    transition:.18s;flex:none;
+  }
+  .icon-btn:hover{background:var(--yellow-soft)}
+  .icon-btn span{display:block;width:18px;height:2.5px;border-radius:2px;background:#3a2f00;transition:.2s}
+  .topbar-brand{font-weight:900;letter-spacing:.3px}
+  .topbar-user{margin-left:auto;font-size:13px;color:var(--muted);font-weight:700}
+
+  .overlay{position:fixed;inset:0;background:rgba(40,35,10,.35);z-index:40}
+  .drawer{
+    position:fixed;top:0;left:0;bottom:0;width:282px;max-width:84vw;z-index:50;
+    background:var(--white);border-right:1px solid var(--yellow-line);
+    transform:translateX(-102%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;padding:18px 14px;
+    box-shadow:14px 0 40px rgba(180,150,0,.12);
+  }
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{display:flex;gap:10px;align-items:center;padding:6px 8px 16px;border-bottom:1px solid var(--yellow-line);margin-bottom:12px}
+  .drawer-head strong{display:block;font-size:14px;word-break:break-all}
+  .drawer-head small{display:block;font-size:11.5px;color:var(--muted);word-break:break-all}
+
+  .menu{list-style:none;margin:0;padding:0;display:grid;gap:6px;flex:1}
+  .menu-item{
+    width:100%;text-align:left;border:0;background:transparent;
+    padding:13px 14px;border-radius:12px;font-weight:700;font-size:14.5px;color:#3a3a30;
+    transition:.16s;display:flex;align-items:center;gap:10px;
+  }
+  .menu-item:hover{background:var(--yellow-soft)}
+  .menu-item.active{background:linear-gradient(135deg,#FFF3B8,#FFE787);color:#3a2f00;box-shadow:inset 0 0 0 1px var(--yellow-line)}
+  .drawer-foot{padding-top:12px;border-top:1px solid var(--yellow-line)}
+  .drawer-foot .btn{width:100%}
+
+  .content{padding:20px 16px 70px;max-width:900px;margin:0 auto}
+  .page{animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .page-title{margin:0 0 6px;font-size:22px}
+  .page-sub{margin:0 0 18px;color:var(--muted);font-size:14px}
+
+  /* Hero */
+  .hero{
+    background:linear-gradient(135deg,#FFF9DB 0%,#FFEE9E 100%);
+    border:1px solid var(--yellow-line);
+    border-radius:22px;padding:22px;
+    position:relative;overflow:hidden;margin-bottom:18px;
+  }
+  .hero::after{
+    content:"";position:absolute;width:160px;height:160px;border-radius:50%;
+    background:rgba(255,255,255,.55);top:-60px;right:-40px;
+  }
+  .hero h2{margin:0 0 4px;font-size:20px;position:relative}
+  .hero p{margin:0 0 16px;color:#7a6a10;font-size:13.5px;position:relative}
+
+  .balance-card{
+    position:relative;
+    background:var(--white);border-radius:16px;padding:14px 16px;
+    display:flex;flex-direction:column;gap:4px;
+    box-shadow:0 6px 18px rgba(200,165,0,.18);
+  }
+  .balance-card span{font-size:12.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .balance-card strong{font-size:26px;color:#3a2f00}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .card-action{
+    background:var(--white);border:1px solid var(--yellow-line);border-radius:16px;
+    padding:20px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    font-weight:800;font-size:14px;color:#3a3a30;transition:.18s;font-size:22px;
+  }
+  .card-action span{font-size:14px}
+  .card-action:hover{transform:translateY(-2px);box-shadow:var(--shadow);background:#FFFCF0}
+
+  /* Notice + steps */
+  .notice{
+    background:#FFF6F5;border:1px solid #F8D7D3;border-left:5px solid #E74C3C;
+    border-radius:14px;padding:14px 16px;margin-bottom:20px;
+  }
+  .notice strong{display:block;margin-bottom:6px;color:#B03A2E;font-size:14px}
+  .notice p{margin:0;font-size:13.5px;line-height:1.6;color:#7a3b33}
+
+  .steps{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:10px}
+  .steps li{
+    display:flex;gap:12px;align-items:flex-start;
+    background:var(--white);border:1px solid var(--yellow-line);border-radius:16px;padding:14px;
+  }
+  .step-n{
+    flex:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--yellow),var(--yellow-deep));
+    font-weight:900;color:#3a2f00;font-size:14px;
+  }
+  .steps b{display:block;font-size:14.5px;margin-bottom:3px}
+  .steps p{margin:0;font-size:13px;color:var(--muted);line-height:1.55}
+
+  /* Forms panels */
+  .panel{
+    background:var(--white);border:1px solid var(--yellow-line);border-radius:20px;
+    padding:20px;box-shadow:0 6px 20px rgba(200,165,0,.08);
+  }
+  .panel + .panel{margin-top:16px}
+  .field{display:grid;gap:6px;margin-bottom:14px}
+  .field label{font-size:13px;font-weight:700;color:#4a4a40}
+  .field input,.field select{
+    width:100%;padding:12px 13px;border-radius:12px;border:1px solid #EDE3C0;
+    background:#FFFEF8;outline:none;transition:.18s;
+  }
+  .field input:focus,.field select:focus{border-color:var(--yellow-deep);box-shadow:0 0 0 3px rgba(255,214,10,.28);background:#fff}
+
+  .bank-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:16px}
+  .bank{
+    border:2px solid #EDE3C0;background:#FFFEF8;border-radius:14px;padding:14px 10px;
+    text-align:center;font-weight:800;font-size:13px;transition:.16s;color:#4a4a40;
+  }
+  .bank:hover{border-color:var(--yellow-deep)}
+  .bank.selected{border-color:var(--yellow-deep);background:#FFF6CC;color:#3a2f00;box-shadow:0 6px 16px rgba(255,195,0,.25)}
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);
+    background:#20201c;color:#fff;padding:13px 20px;border-radius:14px;
+    font-size:14px;font-weight:700;z-index:200;opacity:0;pointer-events:none;
+    transition:.25s;max-width:90vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<!-- ==================== MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ ==================== -->
+<div id="authScreen" class="auth">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-logo">V</div>
+      <div>
+        <h1>Vàng Trắng</h1>
+        <p>Cổng dịch vụ trực tuyến</p>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="login">Đăng nhập</button>
+      <button class="tab" data-tab="register">Đăng ký</button>
+    </div>
+
+    <!-- Đăng nhập -->
+    <form id="loginForm" class="form" novalidate>
+      <label>Tài khoản
+        <input id="loginUser" type="text" placeholder="Tên đăng nhập hoặc Gmail" autocomplete="username" />
+      </label>
+      <label>Mật khẩu
+        <input id="loginPass" type="password" placeholder="Nhập mật khẩu" autocomplete="current-password" />
+      </label>
+      <button class="btn btn-primary" type="submit">Đăng nhập</button>
+      <p class="msg" id="loginMsg"></p>
+    </form>
+
+    <!-- Đăng ký -->
+    <form id="registerForm" class="form" novalidate hidden>
+      <label>Tên đăng nhập
+        <input id="regUser" type="text" placeholder="Ít nhất 3 ký tự, không dấu" autocomplete="username" />
+      </label>
+      <label>Gmail
+        <input id="regEmail" type="email" placeholder="vidu@gmail.com" autocomplete="email" />
+      </label>
+      <label>Mật khẩu
+        <input id="regPass" type="password" placeholder="Ít nhất 6 ký tự" autocomplete="new-password" />
+      </label>
+      <label>Nhập lại mật khẩu
+        <input id="regPass2" type="password" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
+      </label>
+      <button class="btn btn-primary" type="submit">Tạo tài khoản</button>
+      <p class="msg" id="regMsg"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ==================== GIAO DIỆN CHÍNH ==================== -->
+<div id="appScreen" hidden>
+
+  <header class="topbar">
+    <button id="menuBtn" class="icon-btn" aria-label="Mở menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topbar-brand">Vàng Trắng</div>
+    <div class="topbar-user" id="topbarUser"></div>
+  </header>
+
+  <div id="overlay" class="overlay" hidden></div>
+
+  <nav id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div class="brand-logo small">V</div>
+      <div>
+        <strong id="drawerName"></strong>
+        <small id="drawerEmail"></small>
+      </div>
+    </div>
+
+    <ul class="menu">
+      <li><button class="menu-item active" data-page="home">🏠 Trang chủ</button></li>
+      <li><button class="menu-item" data-page="fb">📘 Tạo Facebook Free</button></li>
+      <li><button class="menu-item" data-page="deposit">💰 Nạp tiền</button></li>
+      <li><button class="menu-item" data-page="withdraw">🏦 Rút tiền</button></li>
+    </ul>
+
+    <div class="drawer-foot">
+      <button id="logoutBtn" class="btn btn-ghost">Đăng xuất</button>
+    </div>
+  </nav>
+
+  <main class="content">
+
+    <!-- TRANG CHỦ -->
+    <section class="page" id="page-home">
+      <div class="hero">
+        <h2>Xin chào, <span id="helloName"></span> 👋</h2>
+        <p>Chào mừng bạn quay lại với Vàng Trắng.</p>
+        <div class="balance-card">
+          <span>Số dư hiện tại</span>
+          <strong id="balanceText">0 ₫</strong>
+        </div>
+      </div>
+
+      <div class="grid">
+        <button class="card-action" data-goto="fb">📘<span>Tạo Facebook Free</span></button>
+        <button class="card-action" data-goto="deposit">💰<span>Nạp tiền</span></button>
+        <button class="card-action" data-goto="withdraw">🏦<span>Rút tiền</span></button>
+      </div>
+    </section>
+
+    <!-- TẠO FACEBOOK FREE -->
+    <section class="page" id="page-fb" hidden>
+      <h2 class="page-title">📘 Tạo Facebook Free</h2>
+      <p class="page-sub">Quy trình 6 bước mở cửa sổ đăng ký Facebook chính thức.</p>
+
+      <div class="notice">
+        <strong>⚠️ Lưu ý quan trọng</strong>
+        <p>
+          Trang này <b>không tự động điền</b> họ tên giả và ngày sinh giả vào form của Facebook.
+          Việc tạo tài khoản bằng thông tin không có thật vi phạm Điều khoản dịch vụ của Meta,
+          có thể khiến tài khoản bị khoá vĩnh viễn và ảnh hưởng đến người dùng khác.
+          Các bước dưới đây hướng dẫn bạn tự đăng ký bằng <b>thông tin thật của chính bạn</b>.
+        </p>
+      </div>
+
+      <ol class="steps">
+        <li>
+          <span class="step-n">1</span>
+          <div>
+            <b>Mở một cửa sổ nhỏ</b>
+            <p>Bấm nút bên dưới — một cửa sổ nhỏ (popup) sẽ mở ra ngay trong trình duyệt của bạn.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-n">2</span>
+          <div>
+            <b>Truy cập trang đăng ký Facebook chính thức</b>
+            <p>Cửa sổ sẽ tự mở <code>facebook.com/reg</code> — luôn kiểm tra thanh địa chỉ để chắc chắn là trang thật.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-n">3</span>
+          <div>
+            <b>Bấm "Tạo tài khoản mới"</b>
+            <p>Điền form đăng ký hiện ra trong cửa sổ nhỏ.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-n">4</span>
+          <div>
+            <b>Nhập họ và tên thật của bạn</b>
+            <p>Facebook yêu cầu dùng tên thật như trên giấy tờ. Tên giả dễ bị khoá tài khoản ngay sau khi tạo.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-n">5</span>
+          <div>
+            <b>Nhập ngày sinh thật</b>
+            <p>Facebook yêu cầu người dùng từ 13 tuổi trở lên (một số tính năng yêu cầu 18+). Khai sai ngày sinh có thể bị khoá tài khoản.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-n">6</span>
+          <div>
+            <b>Đặt mật khẩu mạnh cho riêng bạn</b>
+            <p>Nên dài từ 12 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt. Không dùng chung mật khẩu với trang khác.</p>
+          </div>
+        </li>
+      </ol>
+
+      <button class="btn btn-primary big" id="openFbBtn">🔗 Mở cửa sổ đăng ký Facebook</button>
+    </section>
+
+    <!-- NẠP TIỀN -->
+    <section class="page" id="page-deposit" hidden>
+      <h2 class="page-title">💰 Nạp tiền</h2>
+      <p class="page-sub">Chọn phương thức và nhập số tiền muốn nạp.</p>
+
+      <div class="panel">
+        <div class="bank-list" id="depositBanks">
+          <button class="bank selected" data-bank="MB Bank">MB Bank</button>
+          <button class="bank" data-bank="ZaloPay">ZaloPay</button>
+          <button class="bank" data-bank="Sacombank">Sacombank</button>
+        </div>
+
+        <div class="field">
+          <label for="depositAmount">Số tiền nạp (₫)</label>
+          <input id="depositAmount" type="text" inputmode="numeric" placeholder="Ví dụ: 100000" />
+        </div>
+
+        <button class="btn btn-primary big" id="depositBtn">Xác nhận nạp tiền</button>
+      </div>
+    </section>
+
+    <!-- RÚT TIỀN -->
+    <section class="page" id="page-withdraw" hidden>
+      <h2 class="page-title">🏦 Rút tiền</h2>
+      <p class="page-sub">Hỗ trợ MB Bank, ZaloPay và Sacombank.</p>
+
+      <div class="panel">
+        <div class="bank-list" id="withdrawBanks">
+          <button class="bank selected" data-bank="MB Bank">MB Bank</button>
+          <button class="bank" data-bank="ZaloPay">ZaloPay</button>
+          <button class="bank" data-bank="Sacombank">Sacombank</button>
+        </div>
+
+        <div class="field">
+          <label for="withdrawAccount">Số tài khoản / Số điện thoại</label>
+          <input id="withdrawAccount" type="text" inputmode="numeric" placeholder="Nhập số tài khoản nhận tiền" />
+        </div>
+
+        <div class="field">
+          <label for="withdrawName">Tên chủ tài khoản</label>
+          <input id="withdrawName" type="text" placeholder="VD: NGUYEN VAN A" />
+        </div>
+
+        <div class="field">
+          <label for="withdrawAmount">Số tiền rút (₫)</label>
+          <input id="withdrawAmount" type="text" inputmode="numeric" placeholder="Ví dụ: 50000" />
+        </div>
+
+        <button class="btn btn-primary big" id="withdrawBtn">Gửi yêu cầu rút tiền</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* =========================================================
+   1. TIỆN ÍCH
+   ========================================================= */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const esc = (s) => String(s).replace(/[&<>"']/g, c => (
+  { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+));
+
+/* Băm mật khẩu bằng SHA-256 (có fallback nếu trình duyệt chặn crypto.subtle) */
+async function hashPassword(text) {
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (e) {
+    let h = 5381;
+    for (let i = 0; i < text.length; i++) { h = ((h << 5) + h) + text.charCodeAt(i); h |= 0; }
+    return 'fb' + (h >>> 0).toString(16);
+  }
+}
+
+const fmtVND = (n) => Number(n).toLocaleString('vi-VN') + ' ₫';
+const parseMoney = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
+
+/* =========================================================
+   2. LƯU TRỮ (localStorage — chỉ dùng cho mục đích demo)
+   ========================================================= */
+const KEY_USERS   = 'vt_users_v1';
+const KEY_SESSION = 'vt_session_v1';
+
+const getUsers = () => { try { return JSON.parse(localStorage.getItem(KEY_USERS)) || []; } catch { return []; } };
+const setUsers = (list) => localStorage.setItem(KEY_USERS, JSON.stringify(list));
+
+function findUserByLogin(login) {
+  const q = String(login).trim().toLowerCase();
+  return getUsers().find(u =>
+    u.username.toLowerCase() === q || u.email.toLowerCase() === q
+  );
+}
+
+function persistUser(user) {
+  const users = getUsers();
+  const i = users.findIndex(u => u.username === user.username);
+  if (i >= 0) users[i] = user; else users.push(user);
+  setUsers(users);
+}
+
+/* =========================================================
+   3. TRẠNG THÁI
+   ========================================================= */
+let currentUser = null;
+let depositBank  = 'MB Bank';
+let withdrawBank = 'MB Bank';
+
+/* =========================================================
+   4. TOAST
+   ========================================================= */
+let toastTimer = null;
+function toast(message) {
+  const el = $('#toast');
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* =========================================================
+   5. CHUYỂN TAB ĐĂNG NHẬP / ĐĂNG KÝ
+   ========================================================= */
+$$('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.tab').forEach(t => t.classList.toggle('active', t === tab));
+    const isLogin = tab.dataset.tab === 'login';
+    $('#loginForm').hidden = !isLogin;
+    $('#registerForm').hidden = isLogin;
+    $('#loginMsg').textContent = '';
+    $('#regMsg').textContent = '';
+  });
+});
+
+/* =========================================================
+   6. ĐĂNG KÝ
+   ========================================================= */
+$('#registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = $('#regMsg');
+  msg.classList.remove('ok');
+
+  const username = $('#regUser').value.trim();
+  const email    = $('#regEmail').value.trim();
+  const pass     = $('#regPass').value;
+  const pass2    = $('#regPass2').value;
+
+  if (!/^[a-zA-Z0-9_.]{3,20}$/.test(username)) {
+    msg.textContent = 'Tên đăng nhập 3–20 ký tự, chỉ chữ, số, "_" hoặc "."';
+    return;
+  }
+  if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
+    msg.textContent = 'Vui lòng nhập địa chỉ Gmail hợp lệ (…@gmail.com)';
+    return;
+  }
+  if (pass.length < 6) {
+    msg.textContent = 'Mật khẩu phải có ít nhất 6 ký tự';
+    return;
+  }
+  if (pass !== pass2) {
+    msg.textContent = 'Hai mật khẩu không khớp nhau';
+    return;
+  }
+  if (findUserByLogin(username)) {
+    msg.textContent = 'Tên đăng nhập này đã được sử dụng';
+    return;
+  }
+  if (findUserByLogin(email)) {
+    msg.textContent = 'Gmail này đã được đăng ký';
+    return;
+  }
+
+  const newUser = {
+    username,
+    email,
+    passwordHash: await hashPassword(pass),
+    balance: 0,
+    createdAt: new Date().toISOString()
+  };
+  persistUser(newUser);
+
+  msg.classList.add('ok');
+  msg.textContent = 'Đăng ký thành công! Hãy đăng nhập.';
+  $('#registerForm').reset();
+
+  setTimeout(() => {
+    $$('.tab').find(t => t.dataset.tab === 'login').click();
+    $('#loginUser').value = username;
+    $('#loginPass').focus();
+  }, 900);
+});
+
+/* =========================================================
+   7. ĐĂNG NHẬP
+   ========================================================= */
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = $('#loginMsg');
+  msg.classList.remove('ok');
+
+  const login = $('#loginUser').value.trim();
+  const pass  = $('#loginPass').value;
+
+  if (!login || !pass) {
+    msg.textContent = 'Vui lòng nhập đầy đủ tài khoản và mật khẩu';
+    return;
+  }
+
+  const user = findUserByLogin(login);
+  if (!user) {
+    msg.textContent = 'Tài khoản không tồn tại';
+    return;
+  }
+  if (user.passwordHash !== await hashPassword(pass)) {
+    msg.textContent = 'Mật khẩu không đúng';
+    return;
+  }
+
+  localStorage.setItem(KEY_SESSION, user.username);
+  $('#loginForm').reset();
+  enterApp(user);
+});
+
+/* =========================================================
+   8. VÀO / THOÁT GIAO DIỆN CHÍNH
+   ========================================================= */
+function enterApp(user) {
+  currentUser = user;
+  $('#authScreen').hidden = true;
+  $('#appScreen').hidden  = false;
+
+  $('#topbarUser').textContent = user.username;
+  $('#drawerName').textContent = user.username;
+  $('#drawerEmail').textContent = user.email;
+  $('#helloName').textContent = user.username;
+
+  renderBalance();
+  goPage('home');
+}
+
+function renderBalance() {
+  $('#balanceText').textContent = fmtVND(currentUser?.balance || 0);
+}
+
+function updateUser(patch) {
+  Object.assign(currentUser, patch);
+  persistUser(currentUser);
+  renderBalance();
+}
+
+$('#logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem(KEY_SESSION);
+  currentUser = null;
+  closeDrawer();
+  $('#appScreen').hidden = true;
+  $('#authScreen').hidden = false;
+  $('#loginMsg').textContent = '';
+  toast('Đã đăng xuất');
+});
+
+/* =========================================================
+   9. MENU HAMBURGER
+   ========================================================= */
+const drawer  = $('#drawer');
+const overlay = $('#overlay');
+
+function openDrawer() {
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
+  overlay.hidden = false;
+}
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+  overlay.hidden = true;
+}
+
+$('#menuBtn').addEventListener('click', () => {
+  drawer.classList.contains('open') ? closeDrawer() : openDrawer();
+});
+overlay.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+
+/* =========================================================
+   10. ĐIỀU HƯỚNG TRANG
+   ========================================================= */
+function goPage(name) {
+  $$('.page').forEach(p => p.hidden = true);
+  const target = document.getElementById('page-' + name);
+  if (target) target.hidden = false;
+
+  $$('.menu-item').forEach(b => b.classList.toggle('active', b.dataset.page === name));
+  closeDrawer();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+$$('.menu-item').forEach(btn => {
+  btn.addEventListener('click', () => goPage(btn.dataset.page));
+});
+$$('[data-goto]').forEach(btn => {
+  btn.addEventListener('click', () => goPage(btn.dataset.goto));
+});
+
+/* =========================================================
+   11. TẠO FACEBOOK FREE — mở cửa sổ nhỏ
+   ========================================================= */
+$('#openFbBtn').addEventListener('click', () => {
+  const w = 480, h = 760;
+  const left = Math.max(0, Math.round((screen.width  - w) / 2));
+  const top  = Math.max(0, Math.round((screen.height - h) / 2));
+
+  const win = window.open(
+    'https://www.facebook.com/reg/',
+    'fb_dang_ky',
+    `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
+  );
+
+  if (!win) {
+    toast('Trình duyệt đã chặn cửa sổ bật lên. Hãy cho phép popup rồi thử lại.');
+  } else {
+    toast('Đã mở cửa sổ đăng ký Facebook chính thức');
+  }
+});
+
+/* =========================================================
+   12. CHỌN NGÂN HÀNG
+   ========================================================= */
+$('#depositBanks').addEventListener('click', (e) => {
+  const btn = e.target.closest('.bank');
+  if (!btn) return;
+  depositBank = btn.dataset.bank;
+  $$('.bank', $('#depositBanks')).forEach(b => b.classList.toggle('selected', b === btn));
+});
+
+$('#withdrawBanks').addEventListener('click', (e) => {
+  const btn = e.target.closest('.bank');
+  if (!btn) return;
+  withdrawBank = btn.dataset.bank;
+  $$('.bank', $('#withdrawBanks')).forEach(b => b.classList.toggle('selected', b === btn));
+});
+
+/* =========================================================
+   13. NẠP TIỀN
+   ========================================================= */
+$('#depositBtn').addEventListener('click', () => {
+  const amount = parseMoney($('#depositAmount').value);
+
+  if (amount < 10000) {
+    toast('Số tiền nạp tối thiểu là 10.000 ₫');
+    return;
+  }
+
+  updateUser({ balance: (currentUser.balance || 0) + amount });
+  $('#depositAmount').value = '';
+  toast(`Nạp thành công ${fmtVND(amount)} qua ${depositBank}`);
+});
+
+/* =========================================================
+   14. RÚT TIỀN
+   ========================================================= */
+$('#withdrawBtn').addEventListener('click', () => {
+  const account = $('#withdrawAccount').value.trim();
+  const name    = $('#withdrawName').value.trim();
+  const amount  = parseMoney($('#withdrawAmount').value);
+
+  if (!/^\d{6,20}$/.test(account)) {
+    toast('Số tài khoản phải là 6–20 chữ số');
+    return;
+  }
+  if (name.length < 3) {
+    toast('Vui lòng nhập tên chủ tài khoản');
+    return;
+  }
+  if (amount < 20000) {
+    toast('Số tiền rút tối thiểu là 20.000 ₫');
+    return;
+  }
+  if (amount > (currentUser.balance || 0)) {
+    toast('Số dư không đủ để thực hiện giao dịch');
+    return;
+  }
+
+  updateUser({ balance: currentUser.balance - amount });
+  $('#withdrawAccount').value = '';
+  $('#withdrawName').value = '';
+  $('#withdrawAmount').value = '';
+  toast(`Đã gửi yêu cầu rút ${fmtVND(amount)} về ${withdrawBank}`);
+});
+
+/* =========================================================
+   15. KHÔI PHỤC PHIÊN ĐĂNG NHẬP
+   ========================================================= */
+(function restoreSession() {
+  const saved = localStorage.getItem(KEY_SESSION);
+  if (!saved) return;
+  const user = getUsers().find(u => u.username === saved);
+  if (user) enterApp(user);
+})();
+</script>
+</body>
+  </html>
